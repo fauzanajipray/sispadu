@@ -15,8 +15,8 @@ import '../../../services/routes/app_routes.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<LoginScreen> createState() => _LoginState();
@@ -67,7 +67,7 @@ class _LoginState extends State<LoginScreen> {
             child: IconButton(
               icon: const Icon(Icons.settings),
               onPressed: () {
-                context.push(Destination.settingNoAuth);
+                context.push(Destination.settingNoAuthPath);
               },
             ),
           )
@@ -134,7 +134,13 @@ class _LoginState extends State<LoginScreen> {
               OneSignal.User.addTagWithKey("outlet_id", "${data['outlet_id']}");
             }
             context.read<AuthCubit>().setAuthenticated(data['access_token']);
+            context
+                .read<ProfileCubit>()
+                .setProfile(User.fromJson(data['user']));
             // context.read<SettingBloc>().add(GetDataSetting());
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.pop();
+            });
           }
         },
         builder: ((context, state) {

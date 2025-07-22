@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 enum AuthStatus {
   initial,
   loading,
+  reloading,
   locked,
   authenticated,
   unauthenticated,

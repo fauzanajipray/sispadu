@@ -199,7 +199,7 @@ class NavDestination {
 }
 
 const List<NavDestination> destinations = <NavDestination>[
-  NavDestination('Home', Icons.home_outlined, Icons.home, Destination.home),
-  NavDestination(
-      'Settings', Icons.settings_outlined, Icons.settings, Destination.setting),
+  NavDestination('Home', Icons.home_outlined, Icons.home, Destination.homePath),
+  NavDestination('Settings', Icons.settings_outlined, Icons.settings,
+      Destination.settingPath),
 ];

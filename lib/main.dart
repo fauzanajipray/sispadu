@@ -49,10 +49,11 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> {
   final AuthRepository _authRepository = AuthRepository();
   late DioClient dioClient;
-  late final AuthCubit _authCubit = AuthCubit(_authRepository);
+  late final AuthCubit _authCubit = AuthCubit();
   // late final SettingBloc _settingBloc = SettingBloc(SettingRepository());
   late final ThemeBloc _themeBloc = ThemeBloc();
-  late final _router = AppRouter(_authCubit).router;
+  late final GoRouter _router;
+  late BuildContext storedContext;
   late AppLinks _appLinks;
 
   @override
@@ -60,6 +61,7 @@ class _MainAppState extends State<MainApp> {
     super.initState();
     dioClient = DioClient(authCubit: _authCubit);
     dioClient.init();
+    _router = AppRouter(_authCubit).router;
     Future.delayed(Duration.zero, () {
       initAsyncData();
     });
@@ -89,7 +91,7 @@ class _MainAppState extends State<MainApp> {
             return;
           }
         }
-        _router.go(Destination.home);
+        _router.go(Destination.homePath);
       });
     }
   }
@@ -120,22 +122,13 @@ class _MainAppState extends State<MainApp> {
     return RepositoryProvider(
         create: (context) => _authRepository,
         child: MultiBlocProvider(
-            providers: [
-              BlocProvider(create: (_) => _authCubit),
-              BlocProvider(create: (_) => _themeBloc),
-            ],
-            child: BlocListener<AuthCubit, AuthState>(
-              listenWhen: (previousState, state) {
-                return (previousState.status == AuthStatus.initial ||
-                        previousState.status == AuthStatus.loading) &&
-                    (state.status != AuthStatus.initial &&
-                        state.status != AuthStatus.loading);
-              },
-              listener: (BuildContext context, AuthState state) {
-                FlutterNativeSplash.remove();
-              },
-              child: buildMaterialApp(_router),
-            )));
+          providers: [
+            BlocProvider(create: (_) => _authCubit),
+            BlocProvider(create: (_) => _themeBloc),
+            BlocProvider(create: (_) => ProfileCubit(_authRepository)),
+          ],
+          child: buildMaterialApp(_router),
+        ));
   }
 
   Widget buildMaterialApp(GoRouter router) {
@@ -154,7 +147,11 @@ class _MainAppState extends State<MainApp> {
         return MaterialApp.router(
           title: AppConstant.appName,
           debugShowCheckedModeBanner: false,
+          routeInformationProvider: _router.routeInformationProvider,
+          routeInformationParser: _router.routeInformationParser,
+          routerDelegate: _router.routerDelegate,
           builder: (context, child) {
+            storedContext = context;
             return BlocBuilder<AuthCubit, AuthState>(
               buildWhen: (previous, current) {
                 return previous.status != current.status;
@@ -164,47 +161,28 @@ class _MainAppState extends State<MainApp> {
                 if (state.status == AuthStatus.initial ||
                     state.status == AuthStatus.loading) {
                   return Scaffold(
+                    body: const LoadingProgress(),
                     backgroundColor:
                         Theme.of(context).colorScheme.surfaceContainer,
-                    body: const LoadingProgress(),
                   );
-                } else if (state.status == AuthStatus.failure) {
+                } else if (state.status == AuthStatus.failure ||
+                    state.status == AuthStatus.reloading) {
                   return LoginErrorScreen(
                       DioExceptions.fromDioError(state.error!, context)
-                          .toString(),
-                      state.error?.response?.statusCode ?? 500);
-                } else if (state.status == AuthStatus.locked) {
-                  return LoginErrorScreen(
-                      DioExceptions.fromDioError(state.error!, context)
-                          .toString(),
-                      state.error?.response?.statusCode ?? 500);
+                          .toString());
                 }
-                return BlocListener<AuthCubit, AuthState>(
-                  listenWhen: (previous, current) {
-                    return previous.status != current.status;
-                  },
-                  listener: (BuildContext context, state) {
-                    if (state.status == AuthStatus.authenticated) {
-                      // Inisialisasi ulang dioClient setelah autentikasi berhasil
-                      dioClient.init();
-                      // context.read<SettingBloc>().add(GetDataSetting());
-                    }
-                  },
-                  child: ResponsiveBreakpoints.builder(
-                    child: child!,
-                    breakpoints: [
-                      const Breakpoint(start: 0, end: 450, name: MOBILE),
-                      const Breakpoint(start: 451, end: 800, name: TABLET),
-                      const Breakpoint(start: 801, end: 1920, name: DESKTOP),
-                    ],
-                  ),
+                dioClient.init();
+                return ResponsiveBreakpoints.builder(
+                  child: child!,
+                  breakpoints: [
+                    const Breakpoint(start: 0, end: 450, name: MOBILE),
+                    const Breakpoint(start: 451, end: 800, name: TABLET),
+                    const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+                  ],
                 );
               },
             );
           },
-          routeInformationProvider: router.routeInformationProvider,
-          routeInformationParser: router.routeInformationParser,
-          routerDelegate: router.routerDelegate,
           theme: theme,
           darkTheme: themeDark,
           themeMode: themeMode,

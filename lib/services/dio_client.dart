@@ -83,9 +83,10 @@ class DioClient {
             }
             if (statusCode == 401) {
               authCubit.setUnauthenticated();
-            } else if (statusCode == 423) {
-              authCubit.setLocked(e);
             }
+            // else if (statusCode == 423) {
+            //   authCubit.setLocked(e);
+            // }
           } else {
             // print('Error occured');
             if (kDebugMode) {
