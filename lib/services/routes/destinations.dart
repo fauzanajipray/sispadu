@@ -2,6 +2,7 @@ part of 'app_routes.dart';
 
 class Destination {
   static const String signInPath = '/login';
+  static const String signUpPath = '/register';
 
   static const String homePath = '/home';
   static const String myReportPath = '/my-report';

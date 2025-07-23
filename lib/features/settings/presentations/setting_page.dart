@@ -111,14 +111,14 @@ class _SettingPageState extends State<SettingPage> {
                                 // context.push(Destination.profilePath);
                               },
                             ),
-                            const CustomDivider(),
+                            // const CustomDivider(),
                           ],
                         ),
                       // _buildThemeCard(),
                       if (isAuthenticated)
                         Column(
                           children: [
-                            const CustomDivider(),
+                            // const CustomDivider(),
                             ListTile(
                               title: Row(
                                 children: [

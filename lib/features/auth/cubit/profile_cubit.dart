@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../../utils/data_state.dart';
@@ -10,22 +11,16 @@ class ProfileCubit extends HydratedCubit<DataState<User>> {
   }
   final AuthRepository _repository;
 
-  // Future<void> getProfile() async {
-  //   emit(state.copyWith(status: LoadStatus.loading));
-  //   try {
-  //     Map<String, dynamic> response = await _repository.getProfile();
-  //     User? profile = User.fromJson(response);
-
-  //     emit(state.copyWith(
-  //       status: LoadStatus.success,
-  //       data: response,
-  //       item: profile,
-  //       error: null,
-  //     ));
-  //   } on DioException catch (e) {
-  //     emit(state.copyWith(status: LoadStatus.failure, error: e));
-  //   }
-  // }
+  Future<void> getProfile() async {
+    emit(state.copyWith(status: LoadStatus.loading));
+    try {
+      Map<String, dynamic> response = await _repository.getProfile();
+      User? profile = User.fromJson(response);
+      setProfile(profile);
+    } on DioException catch (e) {
+      emit(state.copyWith(status: LoadStatus.failure, error: e));
+    }
+  }
 
   Future<void> setProfile(User profile) async {
     // Tidak perlu try-catch di sini karena tidak ada operasi async yang melempar DioException

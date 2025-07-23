@@ -1,2 +1,7 @@
+export 'bloc/report_list_bloc.dart';
+export 'bloc/report_cubit.dart';
 export 'data/home_repository.dart';
+export 'data/report_repository.dart';
+export 'data/report.dart';
 export 'presentations/home_page.dart';
+export 'presentations/report_detail_page.dart';

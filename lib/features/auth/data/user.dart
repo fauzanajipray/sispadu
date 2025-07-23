@@ -29,7 +29,7 @@ class User {
         email: json["email"],
         emailVerifiedAt: json["email_verified_at"],
         role: json["role"],
-        positionId: json["position_id"],
+        positionId: int.tryParse('${json["position_id"]}'),
         createdAt: json["created_at"] == null
             ? null
             : DateTime.parse(json["created_at"]),
@@ -81,7 +81,7 @@ class Position {
         id: json["id"],
         name: json["name"],
         detail: json["detail"],
-        parentId: json["parent_id"],
+        parentId: int.tryParse('${json["parent_id"]}'),
         createdAt: json["created_at"] == null
             ? null
             : DateTime.parse(json["created_at"]),

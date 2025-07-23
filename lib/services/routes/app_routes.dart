@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sispadu/features/features.dart';
 import 'package:sispadu/widgets/bottom_navigation_page.dart';
@@ -38,20 +39,20 @@ class AppRouter {
                 path: Destination.homePath,
                 pageBuilder: (context, GoRouterState state) {
                   return getPage(
-                    child: const HomePage(),
-                    // child: MultiBlocProvider(
-                    //   providers: [
-                    //     // BlocProvider(
-                    //     //     create: (_) => BannerCubit(_homeRepository)),
-                    //     // BlocProvider(
-                    //     //     create: (_) =>
-                    //     //         TopOutletListingBloc(_homeRepository)),
-                    //     // BlocProvider(
-                    //     //     create: (_) =>
-                    //     //         CategoryPartnerCubit(_homeRepository))
-                    //   ],
-                    //   child: const HomePage(),
-                    // ),
+                    // child: const HomePage(),
+                    child: MultiBlocProvider(
+                      providers: [
+                        BlocProvider(
+                            create: (_) => ReportListBloc(ReportRepository())),
+                        // BlocProvider(
+                        //     create: (_) =>
+                        //         TopOutletListingBloc(_homeRepository)),
+                        // BlocProvider(
+                        //     create: (_) =>
+                        //         CategoryPartnerCubit(_homeRepository))
+                      ],
+                      child: const HomePage(),
+                    ),
                     state: state,
                   );
                 },
@@ -122,6 +123,28 @@ class AppRouter {
             child: const LoginScreen(),
             state: state,
           );
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: parentNavigatorKey,
+        path: Destination.signUpPath,
+        pageBuilder: (context, state) {
+          return getPage(
+            child: const RegisterPage(),
+            state: state,
+          );
+        },
+      ),
+      GoRoute(
+        path: Destination.reportDetailPath,
+        builder: (context, state) {
+          final String? id = state.pathParameters['id'];
+          return MultiBlocProvider(providers: [
+            BlocProvider(create: (_) => ReportCubit(ReportRepository())),
+            // BlocProvider(
+            //     create: (_) => CompetitorReviewDeleteCubit(
+            //         CompetitorReviewRepository())),
+          ], child: ReportDetailPage(id));
         },
       ),
     ];
@@ -203,7 +226,7 @@ class AppRouter {
 
         const nonAuthRoutes = [
           Destination.signInPath,
-          // Destination.signUpPath,
+          Destination.signUpPath,
         ];
 
         const nonAuthRoutePublic = [

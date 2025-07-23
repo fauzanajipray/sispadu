@@ -5,76 +5,50 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:sispadu/features/features.dart';
+// import 'package:sispadu/features/auth/data/auth_repository.dart';
+// import 'package:sispadu/features/auth/presentations/cubit/register_cubit.dart';
 import 'package:sispadu/helpers/dialog.dart';
-import 'package:sispadu/helpers/helpers.dart';
 import 'package:sispadu/widgets/widgets.dart';
-import '../../../services/routes/app_routes.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({
-    super.key,
-  });
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({Key? key}) : super(key: key);
 
   @override
-  State<LoginScreen> createState() => _LoginState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginState extends State<LoginScreen> {
+class _RegisterPageState extends State<RegisterPage> {
   final GlobalKey<FormState> _formKey = GlobalKey();
+  final TextEditingController _controllerName = TextEditingController();
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
-  final FocusNode _focusNodeEmail = FocusNode();
-  final FocusNode _focusNodePassword = FocusNode();
-  final FocusNode _focusNodeButton = FocusNode(); // FocusNode untuk tombol
+  final TextEditingController _controllerPasswordConfirm =
+      TextEditingController();
 
+  List<String>? nameError;
   List<String>? emailError;
   List<String>? passwordError;
+  List<String>? passwordConfirmError;
 
-  String appVersion = '';
-
-  @override
-  void initState() {
-    super.initState();
-    getAppVersion();
-  }
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<LoginCubit>(
-        create: (context) => LoginCubit(context.read<AuthRepository>()),
-        child: buildScreen(context));
-  }
-
-  void getAppVersion() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    setState(() {
-      appVersion = packageInfo.version;
-    });
+    return BlocProvider<RegisterCubit>(
+      create: (context) => RegisterCubit(context.read<AuthRepository>()),
+      child: buildScreen(context),
+    );
   }
 
   Widget buildScreen(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // surfaceTintColor: Theme.of(context).colorScheme.error,
-        // foregroundColor: Colors.amber,
-        forceMaterialTransparency: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12.0),
-            child: IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () {
-                context.push(Destination.settingNoAuthPath);
-              },
-            ),
-          )
-        ],
+        title: const Text('Register'),
       ),
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: BlocConsumer<LoginCubit, LoginState>(
+      body: BlocConsumer<RegisterCubit, LoginState>(
         listener: (context, state) async {
           if (state.status == LoginStatus.failure) {
             String errorMessage = '';
@@ -84,12 +58,18 @@ class _LoginState extends State<LoginScreen> {
                   HttpStatus.unprocessableEntity) {
                 var stateError = state.error;
                 if (stateError != null) {
+                  List<String>? errorName;
                   List<String>? errorEmail;
                   List<String>? errorPassword;
+                  List<String>? errorPasswordConfirm;
                   if (stateError.response != null) {
                     final Map<String, dynamic> json =
                         jsonDecode(stateError.response.toString());
                     if (json["errors"] != null) {
+                      errorName = json["errors"]["name"] == null
+                          ? []
+                          : List<String>.from(
+                              json["errors"]["name"]?.map((x) => x));
                       errorEmail = json["errors"]["email"] == null
                           ? []
                           : List<String>.from(
@@ -98,31 +78,29 @@ class _LoginState extends State<LoginScreen> {
                           ? []
                           : List<String>.from(
                               json["errors"]["password"]?.map((x) => x));
+                      errorPasswordConfirm =
+                          json["errors"]["password_confirmation"] == null
+                              ? []
+                              : List<String>.from(json["errors"]
+                                      ["password_confirmation"]
+                                  ?.map((x) => x));
                     }
                   }
-                  if (errorEmail != null) {
-                    setState(() {
-                      emailError = errorEmail;
-                    });
-                  }
-                  if (errorEmail != null) {
-                    setState(() {
-                      passwordError = errorPassword;
-                    });
-                  }
+                  setState(() {
+                    nameError = errorName;
+                    emailError = errorEmail;
+                    passwordError = errorPassword;
+                    passwordConfirmError = errorPasswordConfirm;
+                  });
                 } else {
                   showDialogMsg(context, 'Something went wrong!');
                 }
               } else {
-                errorMessage = extractErrorMessage(exception);
+                errorMessage = exception?.message ?? "Something went wrong!";
                 showDialogMsg(context, errorMessage);
               }
             } else {
-              if (DioExceptionType.connectionError == exception?.type) {
-                errorMessage = "Connection Error";
-              } else {
-                errorMessage = "Something went wrong!";
-              }
+              errorMessage = "Something went wrong!";
               showDialogMsg(context, errorMessage);
             }
           } else if (state.status == LoginStatus.success) {
@@ -139,11 +117,11 @@ class _LoginState extends State<LoginScreen> {
                 .setProfile(User.fromJson(data['user']));
             // context.read<SettingBloc>().add(GetDataSetting());
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.pop();
+              context.pop(true);
             });
           }
         },
-        builder: ((context, state) {
+        builder: (context, state) {
           return Form(
             key: _formKey,
             child: Center(
@@ -152,30 +130,46 @@ class _LoginState extends State<LoginScreen> {
                   ListView(
                     padding: const EdgeInsets.all(30.0),
                     children: [
-                      const SizedBox(height: 150),
+                      const SizedBox(height: 80),
                       Text(
-                        "Welcome back",
+                        "Create Account",
                         style: Theme.of(context).textTheme.headlineLarge,
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        "Login to your account",
+                        "Register to continue",
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 25),
                       MyTextField(
+                        controller: _controllerName,
+                        labelText: 'Name',
+                        errorText: nameError != null && nameError!.isNotEmpty
+                            ? nameError!.join('\n')
+                            : null,
+                        type: TextFieldType.normal,
+                        autofillHints: const [AutofillHints.name],
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your name';
+                          }
+                          return null;
+                        },
+                        filled: false,
+                      ),
+                      const SizedBox(height: 10),
+                      MyTextField(
                         controller: _controllerEmail,
                         labelText: 'Email',
-                        errorText: extractErrorMessageFromError(emailError),
+                        errorText: emailError != null && emailError!.isNotEmpty
+                            ? emailError!.join('\n')
+                            : null,
                         type: TextFieldType.email,
-                        focusNode: _focusNodeEmail,
                         autofillHints: const [AutofillHints.email],
-                        // prefixIcon: const Icon(Icons.person_outline),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your email address';
                           }
-                          // Use a regular expression to validate the email format
                           final emailRegExp =
                               RegExp(r'^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$');
                           if (!emailRegExp.hasMatch(value)) {
@@ -184,89 +178,73 @@ class _LoginState extends State<LoginScreen> {
                           return null;
                         },
                         filled: false,
-                        onEditingComplete: () {
-                          _focusNodeEmail.unfocus();
-                          FocusScope.of(context)
-                              .requestFocus(_focusNodePassword);
-                        },
-                        textColor: Theme.of(context).colorScheme.onSurface,
                       ),
                       const SizedBox(height: 10),
                       MyTextField(
                         controller: _controllerPassword,
                         labelText: 'Password',
-                        errorText: extractErrorMessageFromError(passwordError),
+                        errorText:
+                            passwordError != null && passwordError!.isNotEmpty
+                                ? passwordError!.join('\n')
+                                : null,
                         type: TextFieldType.password,
-                        focusNode: _focusNodePassword,
-                        autofillHints: const [AutofillHints.password],
                         obscureText: true,
+                        autofillHints: const [AutofillHints.newPassword],
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your password';
                           }
+                          if (value.length < 6) {
+                            return 'Password must be at least 6 characters';
+                          }
                           return null;
                         },
-                        // prefixIcon: const Icon(Icons.password_outlined),
                         filled: false,
-                        onEditingComplete: () {
-                          _focusNodePassword.unfocus();
-                          FocusScope.of(context).requestFocus(_focusNodeButton);
-                        },
                       ),
-                      // const SizedBox(height: 10),
-                      // const Align(
-                      //   alignment: Alignment.centerRight,
-                      //   child: Text(
-                      //     'Forgot Password?',
-                      //   ),
-                      // ),
+                      const SizedBox(height: 10),
+                      MyTextField(
+                        controller: _controllerPasswordConfirm,
+                        labelText: 'Confirm Password',
+                        errorText: passwordConfirmError != null &&
+                                passwordConfirmError!.isNotEmpty
+                            ? passwordConfirmError!.join('\n')
+                            : null,
+                        type: TextFieldType.password,
+                        obscureText: true,
+                        autofillHints: const [AutofillHints.newPassword],
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please confirm your password';
+                          }
+                          if (value != _controllerPassword.text) {
+                            return 'Passwords do not match';
+                          }
+                          return null;
+                        },
+                        filled: false,
+                      ),
                       const SizedBox(height: 25),
                       MyButton(
-                        text: "Login",
+                        text: "Register",
                         verticalPadding: 25,
-                        focusNode: _focusNodeButton,
                         onPressed: () {
+                          setState(() {
+                            nameError = null;
+                            emailError = null;
+                            passwordError = null;
+                            passwordConfirmError = null;
+                          });
                           if (_formKey.currentState!.validate()) {
-                            context.read<LoginCubit>().login(
-                                _controllerEmail.text,
-                                _controllerPassword.text);
+                            context.read<RegisterCubit>().register(
+                                  name: _controllerName.text,
+                                  email: _controllerEmail.text,
+                                  password: _controllerPassword.text,
+                                  passwordConfirmation:
+                                      _controllerPasswordConfirm.text,
+                                );
                           }
                         },
                       ),
-                      const SizedBox(height: 16),
-                      Center(
-                        child: GestureDetector(
-                          onTap: () {
-                            context.push(Destination.signUpPath).then((result) {
-                              if (result == true) {
-                                if (context.canPop()) {
-                                  context.pop();
-                                }
-                              }
-                            });
-                          },
-                          child: Text(
-                            "Belum punya akun? Daftar",
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.w600,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 25),
-                      if (appVersion != '')
-                        Text(
-                          'Version $appVersion',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant),
-                        ),
                     ],
                   ),
                   if (state.status == LoginStatus.loading)
@@ -275,18 +253,17 @@ class _LoginState extends State<LoginScreen> {
               ),
             ),
           );
-        }),
+        },
       ),
     );
   }
 
   @override
   void dispose() {
-    super.dispose();
-    _controllerPassword.dispose();
+    _controllerName.dispose();
     _controllerEmail.dispose();
-    _focusNodeButton.dispose();
-    _focusNodeEmail.dispose();
-    _focusNodePassword.dispose();
+    _controllerPassword.dispose();
+    _controllerPasswordConfirm.dispose();
+    super.dispose();
   }
 }

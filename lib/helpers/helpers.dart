@@ -246,7 +246,8 @@ String formatDateTimeCustom(DateTime? dateTime,
   if (dateTime == null) {
     return ifnull;
   } else {
-    final DateFormat formatter = DateFormat(format, "en_US");
+    final DateFormat formatter =
+        DateFormat(format, "id_ID"); // indonesia -> id_ID
     return formatter.format(dateTime);
   }
 }
