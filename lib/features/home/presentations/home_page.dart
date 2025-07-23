@@ -68,7 +68,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Competitor Review'),
+        title: const Text('Home'),
       ),
       backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       floatingActionButton: FloatingActionButton(

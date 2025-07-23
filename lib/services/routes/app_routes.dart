@@ -39,7 +39,6 @@ class AppRouter {
                 path: Destination.homePath,
                 pageBuilder: (context, GoRouterState state) {
                   return getPage(
-                    // child: const HomePage(),
                     child: MultiBlocProvider(
                       providers: [
                         BlocProvider(
@@ -66,7 +65,20 @@ class AppRouter {
                 path: Destination.myReportPath,
                 pageBuilder: (context, GoRouterState state) {
                   return getPage(
-                    child: const HistoryPage(),
+                    child: MultiBlocProvider(
+                      providers: [
+                        BlocProvider(
+                            create: (_) =>
+                                MyReportListBloc(ReportRepository())),
+                        // BlocProvider(
+                        //     create: (_) =>
+                        //         TopOutletListingBloc(_homeRepository)),
+                        // BlocProvider(
+                        //     create: (_) =>
+                        //         CategoryPartnerCubit(_homeRepository))
+                      ],
+                      child: const HistoryPage(),
+                    ),
                     state: state,
                   );
                 },

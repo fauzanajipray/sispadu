@@ -22,6 +22,18 @@ class ReportRepository {
     return response.data;
   }
 
+  Future<Map<String, dynamic>> getMyReportList(
+      int page, String? search, String? status) async {
+    final queryParameters = {
+      'page': page.toString(),
+      'search': search ?? '',
+      'status': '',
+    };
+    Response response =
+        await _dio.get('/report/my-reports', queryParameters: queryParameters);
+    return response.data;
+  }
+
   Future<Map<String, dynamic>> getReportDetail(String id) async {
     Response response = await _dio.get('/report/$id');
     return response.data;
