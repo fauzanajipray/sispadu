@@ -71,18 +71,25 @@ class _HomePageState extends State<HomePage> {
         title: const Text('Home'),
       ),
       backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await context.push(Destination.homePath).then((result) {
-            if (result is bool) {
-              if (result == true) {
-                context.read<ReportListBloc>().add(FetchEvent(1));
-              }
+      floatingActionButton:
+          BlocBuilder<AuthCubit, AuthState>(builder: (context, state) {
+        return FloatingActionButton(
+          onPressed: () async {
+            if (state.status == AuthStatus.authenticated && state.token != "") {
+              await context.push(Destination.createReportPath).then((result) {
+                if (result is bool) {
+                  if (result == true) {
+                    context.read<ReportListBloc>().add(FetchEvent(1));
+                  }
+                }
+              });
+            } else {
+              await context.push(Destination.signInPath);
             }
-          });
-        },
-        child: const Icon(Icons.add),
-      ),
+          },
+          child: const Icon(Icons.add),
+        );
+      }),
       body: _buildView(),
     );
   }

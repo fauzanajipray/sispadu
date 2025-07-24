@@ -2,8 +2,10 @@ import 'package:extended_image/extended_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sispadu/features/features.dart';
 import 'package:sispadu/helpers/helpers.dart';
+import 'package:sispadu/services/routes/app_routes.dart';
 import 'package:sispadu/utils/utils.dart';
 import 'package:sispadu/widgets/widgets.dart';
 
@@ -50,7 +52,34 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
         return false; // Mencegah pop default karena sudah di-handle
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text("Detail")),
+        appBar: AppBar(
+          title: const Text("Detail"),
+          actions: [
+            BlocBuilder<ProfileCubit, DataState<User>>(
+                builder: (context, state) {
+              return BlocBuilder<ReportCubit, DataState<Report>>(
+                  builder: (context, stateReport) {
+                return Visibility(
+                  visible: state.item?.id == stateReport.item?.user?.id &&
+                      stateReport.item?.status == 'submitted',
+                  child: IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      context
+                          .push(Destination.updateReportPath.replaceAll(
+                              ":id", "${stateReport.item?.id ?? 0}"))
+                          .then((result) {
+                        if (result == true) {
+                          _fetchReviewDetail();
+                        }
+                      });
+                    },
+                  ),
+                );
+              });
+            }),
+          ],
+        ),
         body: RefreshIndicator(
           onRefresh: () => Future.sync(() {
             _fetchReviewDetail();

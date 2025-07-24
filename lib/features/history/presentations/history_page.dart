@@ -67,26 +67,37 @@ class _HistoryPageState extends State<HistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthCubit, AuthState>(builder: (context, stateAuth) {
-      bool isAuthenticated =
-          stateAuth.status == AuthStatus.authenticated && stateAuth.token != "";
-      if (isAuthenticated) {
+    return BlocConsumer<AuthCubit, AuthState>(
+      listener: (context, stateAuth) {
+        print('------- STATE AUTH BERUBAH -------');
+        bool isAuthenticated = stateAuth.status == AuthStatus.authenticated &&
+            stateAuth.token != "";
+        if (isAuthenticated) {
+          _resetSearchTerm();
+          context.read<MyReportListBloc>().add(FetchEvent(1));
+        }
+      },
+      builder: (context, stateAuth) {
+        bool isAuthenticated = stateAuth.status == AuthStatus.authenticated &&
+            stateAuth.token != "";
+        if (isAuthenticated) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('History'),
+            ),
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+            body: _buildViews(context),
+          );
+        }
         return Scaffold(
           appBar: AppBar(
             title: const Text('History'),
           ),
           backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-          body: _buildViews(context),
+          body: containerErrorLogin(context),
         );
-      }
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('History'),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-        body: containerErrorLogin(context),
-      );
-    });
+      },
+    );
   }
 
   Widget _buildViews(BuildContext context) {

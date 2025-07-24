@@ -9,7 +9,7 @@ class Report {
   DateTime? updatedAt;
   bool? canTakeAction;
   UserSimple? user;
-  List<Image>? images;
+  List<ReportImage>? images;
   List<StatusLog>? statusLogs;
 
   Report({
@@ -44,7 +44,8 @@ class Report {
         user: json["user"] == null ? null : UserSimple.fromJson(json["user"]),
         images: json["images"] == null
             ? []
-            : List<Image>.from(json["images"]!.map((x) => Image.fromJson(x))),
+            : List<ReportImage>.from(
+                json["images"]!.map((x) => ReportImage.fromJson(x))),
         statusLogs: json["status_logs"] == null
             ? []
             : List<StatusLog>.from(
@@ -71,14 +72,14 @@ class Report {
       };
 }
 
-class Image {
+class ReportImage {
   int? id;
   int? reportId;
   String? imagePath;
   DateTime? createdAt;
   DateTime? updatedAt;
 
-  Image({
+  ReportImage({
     this.id,
     this.reportId,
     this.imagePath,
@@ -86,9 +87,10 @@ class Image {
     this.updatedAt,
   });
 
-  factory Image.fromJson(Map<String, dynamic> json) => Image(
+  factory ReportImage.fromJson(Map<String, dynamic> json) => ReportImage(
         id: json["id"],
-        reportId: int.tryParse(json["report_id"]),
+        reportId:
+            json["report_id"] == null ? null : int.tryParse(json["report_id"]),
         imagePath: json["image_path"],
         createdAt: json["created_at"] == null
             ? null

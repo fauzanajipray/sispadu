@@ -43,14 +43,49 @@ class AppRouter {
                       providers: [
                         BlocProvider(
                             create: (_) => ReportListBloc(ReportRepository())),
-                        // BlocProvider(
-                        //     create: (_) =>
-                        //         TopOutletListingBloc(_homeRepository)),
-                        // BlocProvider(
-                        //     create: (_) =>
-                        //         CategoryPartnerCubit(_homeRepository))
                       ],
                       child: const HomePage(),
+                    ),
+                    state: state,
+                  );
+                },
+              ),
+              GoRoute(
+                path: Destination.createReportPath,
+                pageBuilder: (context, GoRouterState state) {
+                  return getPage(
+                    child: MultiBlocProvider(
+                      providers: [
+                        BlocProvider(
+                            create: (_) =>
+                                ReportCreateCubit(ReportRepository())),
+                        BlocProvider(
+                            create: (_) =>
+                                ReportUploadImageCubit(ReportRepository())),
+                      ],
+                      child: const ReportCreatePage(),
+                    ),
+                    state: state,
+                  );
+                },
+              ),
+              GoRoute(
+                path: Destination.updateReportPath,
+                pageBuilder: (context, GoRouterState state) {
+                  final String? id = state.pathParameters['id'];
+                  return getPage(
+                    child: MultiBlocProvider(
+                      providers: [
+                        BlocProvider(
+                            create: (_) =>
+                                ReportCreateCubit(ReportRepository())),
+                        BlocProvider(
+                            create: (_) =>
+                                ReportUploadImageCubit(ReportRepository())),
+                        BlocProvider(
+                            create: (_) => ReportCubit(ReportRepository())),
+                      ],
+                      child: ReportEditPage(id),
                     ),
                     state: state,
                   );
@@ -160,67 +195,6 @@ class AppRouter {
         },
       ),
     ];
-    /*
-    _router = GoRouter(
-      navigatorKey: navigatorKey,
-      // errorBuilder: ((context, state) {
-      //   return const ErrorNotFoundPage();
-      // }),
-      initialLocation: Destination.home,
-      refreshListenable: GoRouterRefreshStream(_authCubit.stream),
-      redirect: (context, state) {
-        final bool isAuthenticated =
-            _authCubit.state.status == AuthStatus.authenticated &&
-                _authCubit.state.token != "";
-
-        final bool isUnauthenticated =
-            _authCubit.state.status == AuthStatus.unauthenticated ||
-                _authCubit.state.token == "";
-        // const routeValidateOtp = '/otp-login';
-
-        const nonAuthRoutes = [
-          '/login',
-          Destination.settingNoAuth,
-          // '/forgot-password'
-        ];
-
-        // setelah main url, sub urlnya apa
-        String? subloc = state.fullPath;
-
-        // params from
-        String fromRoutes = state.pathParameters['from'] ?? '';
-
-        // jika akses /login tapi ternyata sudah authenticated
-        if (nonAuthRoutes.contains(subloc) && isAuthenticated) {
-          // ini ngembaliin ke halaman yang diinginkan setelah login
-          if (fromRoutes.isNotEmpty) {
-            return fromRoutes;
-          }
-          // defaultnya ke dashboard
-          return '/home';
-        } else if (!nonAuthRoutes.contains(subloc) && isUnauthenticated) {
-          return '/login?from=${state.fullPath}';
-        }
-        return null;
-      },
-      routes: [
-        GoRoute(
-          path: '/',
-          redirect: (context, state) => Destination.home,
-          builder: (context, state) => const SizedBox.shrink(),
-        ),
-        GoRoute(
-          name: 'Home',
-          path: Destination.home,
-          builder: (context, state) => const HomePage(),
-        ),
-        GoRoute(
-          path: Destination.login,
-          builder: (context, state) => const LoginScreen(),
-        ),
-      ],
-    );
-    */
 
     _router = GoRouter(
       navigatorKey: parentNavigatorKey,

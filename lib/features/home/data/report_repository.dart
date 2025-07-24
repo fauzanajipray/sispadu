@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:sispadu/features/features.dart';
 
@@ -65,5 +67,26 @@ class ReportRepository {
 
   Future<void> deleteComment(String reportId, int commentId) async {
     await _dio.delete('/reports/$reportId/comments/$commentId');
+  }
+
+  Future<Map<String, dynamic>> postReport(Map<String, dynamic> payload) async {
+    Response response = await _dio.post('/report', data: payload);
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> updateReport(
+      String id, Map<String, dynamic> payload) async {
+    Response response = await _dio.post('/report/$id', data: payload);
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> uploadSingleImage(File image) async {
+    FormData formData = FormData.fromMap({
+      'image_path': await MultipartFile.fromFile(image.path,
+          filename: image.path.split('/').last),
+    });
+
+    Response response = await _dio.post('/report/image', data: formData);
+    return response.data;
   }
 }
